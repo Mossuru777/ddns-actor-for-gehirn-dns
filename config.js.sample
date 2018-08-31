@@ -1,0 +1,31 @@
+// GehirnDNS as DDNS configuration
+module.exports = {
+
+    // API authoricate configurations.
+    auth: {
+
+        // API Access-token
+        token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+
+        // API Secret key
+        secret: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+    },
+
+    // Target DNS record.
+    target: {
+
+        // GehirnDNS zone name.
+        zone: "example.com",
+
+        // DNS record
+        record: "www.example.com."
+
+    },
+
+    option: {
+        // If you checking request or response paramaters, change to 'false'.
+        debug: false
+    }
+};
+
