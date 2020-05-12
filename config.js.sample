@@ -23,9 +23,22 @@ module.exports = {
 
     },
 
+    ip_getter: {
+        /* HTTPBin */
+        type: "HTTPBin"
+
+
+        /* RS-500KI */
+        type: "RS-500KI",
+        options: {
+            ip: "192.168.1.1",
+            user: "hoge",
+            password: "fuga"
+        }
+    },
+
     option: {
-        // If you checking request or response paramaters, change to 'false'.
+        // If you checking request or response paramaters, change to 'true'.
         debug: false
     }
 };
-

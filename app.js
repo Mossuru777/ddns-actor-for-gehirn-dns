@@ -1,88 +1,88 @@
-const GehirnDNS = require('./lib/gehirn-dns');
-const request = require('request-promise');
-const config = require('./config.js');
-const c = require('ansi-colors');
+const {GehirnDNS} = require("./lib/gehirn-dns");
+const {HTTPBinIPGetter, RS500KIIPGetter} = require("./lib/ip-getter");
+const c = require("ansi-colors");
+const config = require("./config");
 
-var dns = new GehirnDNS(config.auth.token, config.auth.secret, config.option);
+const dns = new GehirnDNS(config.auth.token, config.auth.secret, config.option);
 
-var error_process = function(text) {
+const error_process = function (text) {
     console.log(c.bold.red(text));
     process.exit(1);
 };
 
-var update_dns_record = async function() {
-    var zone_id, version_id, target_record, current_ip;
-
+const update_dns_record = async function () {
     console.log(c.bold.underline('DDNS actor for GehirnDNS'));
-    process.stdout.write('Checking DNS zones ... ');
-    var zones = await dns.get('zones');
-    for (var i = 0; i < zones.length; i++) {
-        if (zones[i].name === config.target.zone) {
-            zone_id = zones[i].id;
-            version_id = zones[i].current_version.id;
-            break;
+
+    process.stdout.write('Checking global ip address ... ');
+    const ip_getter = (() => {
+        if (config.ip_getter.type === "HTTPBin") {
+            return new HTTPBinIPGetter(config.ip_getter.options);
+        } else if (config.ip_getter.type === "RS-500KI") {
+            return new RS500KIIPGetter(config.ip_getter.options);
+        } else {
+            error_process(`[Unknown IP Getter Type] ${config.ip_getter.type}`);
         }
+    })();
+    let current_ip;
+    try {
+        // タイムアウト5秒で取得を行う
+        current_ip = await ip_getter.getGlobalIP(5000);
+        console.log(c.bold.green('Done'));
+    } catch (err) {
+        error_process(`[Global IP Get Error] ${err}`);
     }
 
-    if (!zone_id) {
+    process.stdout.write('Checking DNS zones ... ');
+    let {zone_id, version_id} = await (async () => {
+        const zones = await dns.get('zones');
+        for (let i = 0; i < zones.length; i++) {
+            if (zones[i].name === config.target.zone) {
+                const zone_id = zones[i].id;
+                const version_id = zones[i].current_version.id;
+                return {zone_id, version_id};
+            }
+        }
         error_process('Not found target zone.');
-    }
+    })();
 
     console.log(c.bold.green('Done'));
     console.log('current version ID: ' + version_id);
     process.stdout.write('Checking DNS records... ');
 
-    var records = await dns.get('zones/' + zone_id + '/versions/' + version_id + '/records');
-
-    for (var i = 0; i < records.length; i++) {
-        if (records[i].name === config.target.record) {
-            target_record = records[i];
-            break;
+    const records = await dns.get('zones/' + zone_id + '/versions/' + version_id + '/records');
+    const target_record = (() => {
+        for (let i = 0; i < records.length; i++) {
+            if (records[i].name === config.target.record) {
+                return records[i];
+            }
         }
-    }
-
-    if (!target_record) {
         error_process('not found target record');
-    }
-
+    })();
     console.log(c.bold.green('Done'));
-    process.stdout.write('Checking global ip address ... ');
 
-    current_ip = await request.get({
-        method: 'GET',
-        uri: 'https://httpbin.org/ip',
-        json: true
-    });
-
-    console.log(c.bold.green('Done'));
-    console.log(`GHRN: ${target_record.records[0].address} <=> GLOB: ${current_ip.origin}`);
-
-    if (target_record.records[0].address === current_ip.origin) {
+    console.log(`GHRN: ${target_record.records[0].address} <=> GLOB: ${current_ip}`);
+    if (target_record.records[0].address === current_ip) {
         console.log(c.bold.cyan('Record is set latest IPaddress.'));
         process.exit(0);
     }
 
     console.log(c.bold.cyan('Updating DNS record.'));
 
-    target_record.records[0].address = current_ip.origin;
+    target_record.records[0].address = current_ip;
 
-    var version_org = await dns.get('zones/' + zone_id + '/versions/' + version_id);
-    var version_new;
-
+    const version_org = await dns.get('zones/' + zone_id + '/versions/' + version_id);
     console.log(version_org);
-
     if (!version_org.editable) {
         version_org.editable = true;
         version_org.id = undefined;
-        version_new = await dns.push('zones/' + zone_id + '/versions', version);
+        const version_new = await dns.push('zones/' + zone_id + '/versions', version);
         version_id = version_new.id;
         console.log(version_new);
     }
 
-    var updated = await dns.put('zones/' + zone_id + '/versions/' + version_id + '/records/' + target_record.id, target_record);
+    const updated = await dns.put('zones/' + zone_id + '/versions/' + version_id + '/records/' + target_record.id, target_record);
     console.log(target_record);
     console.log(updated);
-
     if (!updated) {
         error_process('Failed record updated');
     }

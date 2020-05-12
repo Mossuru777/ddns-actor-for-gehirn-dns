@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Update DNS record as your global address.",
   "main": "app.js",
+  "engines": {
+    "node": ">=6"
+  },
+  "engineStrict": true,
   "scripts": {
     "start": "node app.js",
     "test": "node test.js"
@@ -15,9 +19,9 @@
   "license": "AGPL-3",
   "homepage": "https://bitbucket.org/wd-shiroma/update-gehirn-dns#readme",
   "dependencies": {
-    "ansi-colors": "^3.0.5",
-    "base-64": "^0.1.0",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.2"
+    "abort-controller": "^3.0.0",
+    "ansi-colors": "^4.1.1",
+    "libxmljs": "^0.19.7",
+    "node-fetch": "^2.6.0"
   }
 }

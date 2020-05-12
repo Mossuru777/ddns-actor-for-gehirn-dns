@@ -1,6 +1,6 @@
-const GehirnDNS = require('./lib/gehirn-dns');
-const config = require('./config');
-const c = require('ansi-colors');
+const {GehirnDNS} = require("./lib/gehirn-dns");
+const c = require("ansi-colors");
+const config = require("./config");
 
 async function test(description, callback) {
     process.stdout.write(`${description} ... `);
@@ -21,7 +21,7 @@ async function test(description, callback) {
         let gehirn = new GehirnDNS(config.auth.token, config.auth.secret);
         await test('GET request to GehirnDNS', async () => {
             let res = await gehirn.get('zones');
-            return Array.isArray(res) ? true : false;
+            return !!Array.isArray(res);
         });
         process.exit(0);
     }
