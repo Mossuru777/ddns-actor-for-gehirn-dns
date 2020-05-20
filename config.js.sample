@@ -24,9 +24,12 @@ module.exports = {
     },
 
     ip_getter: {
+
+        /* Common */
+        ip_cache_path: null,
+
         /* HTTPBin */
         type: "HTTPBin"
-
 
         /* RS-500KI */
         type: "RS-500KI",
@@ -36,6 +39,7 @@ module.exports = {
             password: "fuga",
             session: 1  // 1-5 (1: Main Session, 2-5: Session 2-5)
         }
+
     },
 
     option: {
