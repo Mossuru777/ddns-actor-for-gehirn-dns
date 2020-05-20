@@ -16,7 +16,7 @@ const update_dns_record = async function () {
     process.stdout.write('Checking global ip address ... ');
     const ip_getter = (() => {
         if (config.ip_getter.type === "HTTPBin") {
-            return new HTTPBinIPGetter(config.ip_getter.options);
+            return new HTTPBinIPGetter();
         } else if (config.ip_getter.type === "RS-500KI") {
             return new RS500KIIPGetter(config.ip_getter.options);
         } else {
@@ -70,14 +70,13 @@ const update_dns_record = async function () {
 
     target_record.records[0].address = current_ip;
 
-    const version_org = await dns.get('zones/' + zone_id + '/versions/' + version_id);
-    console.log(version_org);
-    if (!version_org.editable) {
-        version_org.editable = true;
-        version_org.id = undefined;
-        const version_new = await dns.push('zones/' + zone_id + '/versions', version);
-        version_id = version_new.id;
-        console.log(version_new);
+    let version = await dns.get('zones/' + zone_id + '/versions/' + version_id);
+    console.log(version);
+    if (!version.editable) {
+        version = await dns.post('zones/' + zone_id + '/versions', version);
+        version_id = version.id;
+        console.log('new version id: ' + version.id);
+        console.log(version);
     }
 
     const updated = await dns.put('zones/' + zone_id + '/versions/' + version_id + '/records/' + target_record.id, target_record);
