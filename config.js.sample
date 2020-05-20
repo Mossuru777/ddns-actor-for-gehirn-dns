@@ -33,7 +33,8 @@ module.exports = {
         options: {
             ip: "192.168.1.1",
             user: "hoge",
-            password: "fuga"
+            password: "fuga",
+            session: 1  // 1-5 (1: Main Session, 2-5: Session 2-5)
         }
     },
 
